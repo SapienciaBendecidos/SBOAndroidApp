@@ -1,5 +1,8 @@
 package link.software.nfcapp;
 
+import android.media.AudioManager;
+import android.media.SoundPool;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.app.PendingIntent;
 import android.content.Intent;
@@ -45,6 +48,12 @@ public class MainActivity extends AppCompatActivity {
     private ListView lv;
     private String currentId;
     private ArrayList<HashMap<String, String>> clientes;
+    //SoundPool attributes
+    private SoundPool soundPool;
+    private int soundID;
+    boolean loaded = false;
+    public static final int MAX_NUMBER_STREAMS = 2;
+    public static final int SOURCE_QUALITY = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +67,20 @@ public class MainActivity extends AppCompatActivity {
         jsonFileAction = new JsonFileActions();
         clientes = new ArrayList<>();
         currentId = "";
+        initSound();
         initLoadButton();
+    }
+
+    private void initSound() {
+        soundPool = new SoundPool(MAX_NUMBER_STREAMS, AudioManager.STREAM_MUSIC, SOURCE_QUALITY);
+        this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
+        soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
+            @Override
+            public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
+                loaded = true;
+            }
+        });
+        soundID = soundPool.load(this, R.raw.microwave_beep, 1);
     }
 
     private void initLoadButton() {
@@ -205,10 +227,22 @@ public class MainActivity extends AppCompatActivity {
             String clientId = hMap.get(keyToCompare);
             if(clientId.trim().equals(tagContent)){
                 Toast.makeText(this, "Found " + hMap.get(keyToCompare), Toast.LENGTH_SHORT).show();
+                playSound();
                 return hMap;
             }
         }
         return null;
+    }
+
+    private void playSound() {
+        AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        float actualVolume = (float) audioManager
+                .getStreamVolume(AudioManager.STREAM_MUSIC);
+        float maxVolume = (float) audioManager
+                .getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        float volume = actualVolume / maxVolume;
+        if (loaded)
+            soundPool.play(soundID, volume, volume, 1, 0, 1f);
     }
 
     private void enableForegroundDispatchSystem() {
