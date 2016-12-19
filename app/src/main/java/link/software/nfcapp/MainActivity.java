@@ -61,11 +61,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initLoadButton() {
+        loadAndShowJsonData();
         btnWrite.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    loadAndShowJsonData();
                 }
                 return true;
             }
@@ -76,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         try{
             JSONArray jArray = new JSONArray(jsonFileAction.readJsonFile());
             fillClientesListWithJsonArray(jArray);
-            setListViewAdapter();
+            //setListViewAdapter(clientes);
         }catch(final JSONException e){
             runOnUiThread(new Runnable() {
                 @Override
@@ -89,8 +90,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setListViewAdapter() {
-        ListAdapter adapter = new SimpleAdapter(MainActivity.this, clientes,
+    private void setListViewAdapter(ArrayList<HashMap<String, String>> list) {
+        ListAdapter adapter = new SimpleAdapter(MainActivity.this, list,
                 R.layout.list_item, new String[]{ "idCliente", "nombre"},
                 new int[]{R.id.idCliente, R.id.nombre});
         lv.setAdapter(adapter);
@@ -184,10 +185,22 @@ public class MainActivity extends AppCompatActivity {
                 tagContent += getTextFromNdefRecord(ndefRecord) + "\r\n";
             }
 
-            txtTagContent.setText(tagContent);
+            HashMap<String, String> client = searchForClient(tagContent);
+            ArrayList<HashMap<String, String>> lista = new ArrayList<>();
+            lista.add(client);
+            setListViewAdapter(lista);
         } else {
             Toast.makeText(this, "No NDEF records found!", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private HashMap<String,String> searchForClient(String tagContent) {
+        String keyToCompare = "idCliente";
+        for(HashMap<String, String> hMap : clientes){
+            if(hMap.get(keyToCompare).equals(tagContent))
+                return hMap;
+        }
+        return null;
     }
 
     private void enableForegroundDispatchSystem() {
