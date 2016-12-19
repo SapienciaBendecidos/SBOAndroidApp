@@ -53,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
     private boolean soundLoaded = false;
     public static final int MAX_NUMBER_STREAMS = 2;
     public static final int SOURCE_QUALITY = 0;
-    private String ABS_PATH;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,11 +68,10 @@ public class MainActivity extends AppCompatActivity {
         currentId = "";
         cantidadDePasajeros = 0;
         btnCantPasajeros.setText(cantPasajerosText + cantidadDePasajeros);
+        String elPath = jsonFileAction.writeToFile();
+        Toast.makeText(this, elPath, Toast.LENGTH_LONG).show();
         initSound();
         initLoadButton();
-        ABS_PATH = this.getApplication().getApplicationContext().getFilesDir().getAbsolutePath();
-        Toast.makeText(this, ABS_PATH, Toast.LENGTH_LONG).show();
-        jsonFileAction.writeToFile();
     }
 
     private void initSound() {
@@ -120,8 +118,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void setListViewAdapter(ArrayList<HashMap<String, String>> list) {
         ListAdapter adapter = new SimpleAdapter(MainActivity.this, list,
-                R.layout.list_item, new String[]{ "idCliente", "nombre"},
-                new int[]{R.id.idCliente, R.id.nombre});
+                R.layout.list_item, new String[]{ "id_tarjeta", "nombre"},
+                new int[]{R.id.id_tarjeta, R.id.nombre});
+
         lv.setAdapter(adapter);
     }
 
@@ -130,14 +129,12 @@ public class MainActivity extends AppCompatActivity {
             JSONObject c = jArray.getJSONObject(i);
             StringBuilder sBuilder = new StringBuilder();
 
-            String idCliente = c.getString("idCliente") + " ";
-            sBuilder.append(c.getString("primerNombre") + " ");
-            sBuilder.append(c.getString("segundoNombre") + " ");
-            sBuilder.append(c.getString("primerApellido") + " ");
-            sBuilder.append(c.getString("segundoApellido") + " ");
+            String idCliente = c.getString("id_tarjeta");
+            sBuilder.append(c.getString("primer_nombre") + " ");
+            sBuilder.append(c.getString("primer_apellido") + " ");
 
             HashMap<String, String> client = new HashMap<>();
-            client.put("idCliente", idCliente);
+            client.put("id_tarjeta", idCliente);
             client.put("nombre", sBuilder.toString());
 
             clientes.add(client);
@@ -215,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Nullable
     private HashMap<String,String> searchForClient(String tagContent) {
-        final String keyToCompare = "idCliente";
+        final String keyToCompare = "id_tarjeta";
         for(HashMap<String, String> hMap : clientes){
             String clientId = hMap.get(keyToCompare);
             if(clientId.trim().equals(tagContent)){

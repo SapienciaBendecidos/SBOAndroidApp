@@ -8,24 +8,37 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class JsonFileActions {
-    public boolean writeToFile(){
+    private String setPath;
+
+    public JsonFileActions(){
+        setPath = "0/Android/data/com.sbo_app/files/";
         File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+        //Android/data/com.sbo_app/files
+        String abPath = dir.getAbsolutePath();
+        String [] dirs = abPath.split("/");
 
-        File folder = new File(dir, "sboEbenezer");
+        String newPath = "";
 
-        if(!folder.exists())
-            folder.mkdirs();
+        for(int i = 0; i < 3; ++i)
+            newPath += dirs[i] + "/";
 
-        File file = new File(folder, "example.txt");
+        newPath += setPath;
+        setPath = newPath;
+    }
+
+    public String writeToFile(){
+
+        String newPath = setPath + "examples.txt";
+        File file = new File(newPath);
 
         try (FileWriter fileWriter = new FileWriter(file)) {
-            fileWriter.append("Writing to file!");
+            fileWriter.append("Writing to file by Raim!");
             fileWriter.flush();
 
-            return true;
+            return newPath;
         } catch (IOException e) {
             //Handle exception
-            return false;
+            return newPath + "hey!";
         }
     }
 
@@ -33,8 +46,7 @@ public class JsonFileActions {
         String json;
 
         try {
-            File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
-            File file = new File(dir, "sboEbenezer/clientes.json");
+            File file = new File(setPath + "cardsInformation.txt");
             InputStream is = new FileInputStream(file);
             int size = is.available();
             byte[] buffer = new byte[size];
