@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnWrite;
     private JsonFileActions jsonFileAction;
     private ListView lv;
-
+    private String currentId;
     private ArrayList<HashMap<String, String>> clientes;
 
     @Override
@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
         lv = (ListView) findViewById(R.id.list);
         jsonFileAction = new JsonFileActions();
         clientes = new ArrayList<>();
+        currentId = "";
         initLoadButton();
     }
 
@@ -108,11 +109,11 @@ public class MainActivity extends AppCompatActivity {
             sBuilder.append(c.getString("primerApellido") + " ");
             sBuilder.append(c.getString("segundoApellido") + " ");
 
-            HashMap<String, String> contact = new HashMap<>();
-            contact.put("idCliente", idCliente);
-            contact.put("nombre", sBuilder.toString());
+            HashMap<String, String> client = new HashMap<>();
+            client.put("idCliente", idCliente);
+            client.put("nombre", sBuilder.toString());
 
-            clientes.add(contact);
+            clientes.add(client);
         }
     }
 
@@ -135,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
         super.onNewIntent(intent);
 
         if (intent.hasExtra(NfcAdapter.EXTRA_TAG)) {
-            Toast.makeText(this, "Tag detected!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Tag detected!", Toast.LENGTH_SHORT).show();
 
             if (tglReadWrite.isChecked()) {
                 Parcelable[] parcelables = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
@@ -180,25 +181,32 @@ public class MainActivity extends AppCompatActivity {
         NdefRecord[] ndefRecords = ndefMessage.getRecords();
 
         if (ndefRecords != null && ndefRecords.length > 0) {
-            String tagContent = "";
-            for (NdefRecord ndefRecord : ndefRecords) {
-                tagContent += getTextFromNdefRecord(ndefRecord) + "\r\n";
-            }
-
-            HashMap<String, String> client = searchForClient(tagContent);
-            ArrayList<HashMap<String, String>> lista = new ArrayList<>();
-            lista.add(client);
-            setListViewAdapter(lista);
+            readNdefRecords(ndefRecords);
         } else {
             Toast.makeText(this, "No NDEF records found!", Toast.LENGTH_SHORT).show();
         }
     }
 
+    private void readNdefRecords(NdefRecord[] ndefRecords) {
+        String tagContent = "";
+        for (NdefRecord ndefRecord : ndefRecords) {
+            tagContent += getTextFromNdefRecord(ndefRecord);
+        }
+        this.currentId = tagContent;
+        HashMap<String, String> client = searchForClient(this.currentId.trim());
+        ArrayList<HashMap<String, String>> lista = new ArrayList<>();
+        lista.add(client);
+        setListViewAdapter(lista);
+    }
+
     private HashMap<String,String> searchForClient(String tagContent) {
-        String keyToCompare = "idCliente";
+        final String keyToCompare = "idCliente";
         for(HashMap<String, String> hMap : clientes){
-            if(hMap.get(keyToCompare).equals(tagContent))
+            String clientId = hMap.get(keyToCompare);
+            if(clientId.trim().equals(tagContent)){
+                Toast.makeText(this, "Found " + hMap.get(keyToCompare), Toast.LENGTH_SHORT).show();
                 return hMap;
+            }
         }
         return null;
     }
