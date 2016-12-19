@@ -1,5 +1,7 @@
 package link.software.nfcapp;
 
+import android.os.AsyncTask;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.app.PendingIntent;
 import android.content.Intent;
@@ -15,19 +17,41 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListAdapter;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
-    NfcAdapter nfcAdapter;
-    ToggleButton tglReadWrite;
-    EditText txtTagContent;
+    private NfcAdapter nfcAdapter;
+    private ToggleButton tglReadWrite;
+    private EditText txtTagContent;
+    private Button btnWrite;
+    private JsonFileActions jsonFileAction;
+    private ListView lv;
+
+    private HashMap<String, String> jsonData;
+
+    private ArrayList<HashMap<String, String>> contactList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,8 +59,32 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        tglReadWrite = (ToggleButton)findViewById(R.id.tglReadWrite);
-        txtTagContent = (EditText)findViewById(R.id.txtTagContent);
+        tglReadWrite = (ToggleButton) findViewById(R.id.tglReadWrite);
+        txtTagContent = (EditText) findViewById(R.id.txtTagContent);
+        btnWrite = (Button) findViewById(R.id.btnWrite);
+        lv = (ListView) findViewById(R.id.list);
+        jsonFileAction = new JsonFileActions();
+        init();
+
+        contactList = new ArrayList<>();
+        //new GetContacts().execute();
+    }
+
+    private void init() {
+        btnWrite.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    /*contactList = jsonFileAction.readJsonFile();
+
+                    ListAdapter adapter = new SimpleAdapter(MainActivity.this, contactList,
+                            R.layout.list_item, new String[]{ "idCliente","primerNombre"},
+                            new int[]{R.id.idCliente, R.id.primerNombre});
+                    lv.setAdapter(adapter);*/
+                }
+                return true;
+            }
+        });
     }
 
     @Override
@@ -58,20 +106,18 @@ public class MainActivity extends AppCompatActivity {
         super.onNewIntent(intent);
 
         if (intent.hasExtra(NfcAdapter.EXTRA_TAG)) {
-            Toast.makeText(this, "Tag detected!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Tag detected!", Toast.LENGTH_LONG).show();
 
-            if(tglReadWrite.isChecked())
-            {
+            if (tglReadWrite.isChecked()) {
                 Parcelable[] parcelables = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
 
-                if(parcelables != null && parcelables.length > 0)
-                {
+                if (parcelables != null && parcelables.length > 0) {
                     readTextFromMessage((NdefMessage) parcelables[0]);
-                }else{
-                    Toast.makeText(this, "No NDEF messages found!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "No NDEF messages found!", Toast.LENGTH_LONG).show();
                 }
 
-            }else{
+            } else {
                 Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
                 NdefMessage ndefMessage = createNdefMessage(txtTagContent.getText().toString());
 
@@ -104,16 +150,14 @@ public class MainActivity extends AppCompatActivity {
     private void readTextFromMessage(NdefMessage ndefMessage) {
         NdefRecord[] ndefRecords = ndefMessage.getRecords();
 
-        if(ndefRecords != null && ndefRecords.length > 0){
-
+        if (ndefRecords != null && ndefRecords.length > 0) {
             String tagContent = "";
-            for(NdefRecord ndefRecord : ndefRecords){
+            for (NdefRecord ndefRecord : ndefRecords) {
                 tagContent += getTextFromNdefRecord(ndefRecord) + "\r\n";
             }
 
             txtTagContent.setText(tagContent);
-        }else
-        {
+        } else {
             Toast.makeText(this, "No NDEF records found!", Toast.LENGTH_SHORT).show();
         }
     }
@@ -207,7 +251,7 @@ public class MainActivity extends AppCompatActivity {
         return ndefMessage;
     }
 
-    public void tglReadWriteOnClick(View view){
+    public void tglReadWriteOnClick(View view) {
         txtTagContent.setText("");
     }
 
@@ -223,5 +267,73 @@ public class MainActivity extends AppCompatActivity {
             Log.e("getTextFromNdefRecord", e.getMessage(), e);
         }
         return tagContent;
+    }
+
+
+    private class GetContacts extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            Toast.makeText(MainActivity.this, "Json Data is downloading", Toast.LENGTH_LONG).show();
+        }
+
+        @Override
+        protected Void doInBackground(Void... arg0) {
+            ArrayList<HashMap<String, String>> parsedDataList = null;
+            try {
+                File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+                File yourFile = new File(dir, "/sboEbenezer/clientes.json");
+                FileInputStream stream = new FileInputStream(yourFile);
+                String jsonStr = null;
+
+                try {
+                    FileChannel fc = stream.getChannel();
+                    MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
+
+                    jsonStr = Charset.defaultCharset().decode(bb).toString();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    stream.close();
+                }
+
+                JSONObject jsonObj = new JSONObject(jsonStr);
+
+                // Getting data JSON Array nodes
+                JSONArray data = jsonObj.getJSONArray("data");
+
+                // looping through All nodes
+                for (int i = 0; i < data.length(); i++) {
+                    JSONObject c = data.getJSONObject(i);
+
+                    String id = c.getString("idCliente");
+                    String title = c.getString("primerNombre");
+                    //String duration = c.getString("segundoNombre");
+
+                    // tmp hashmap for single node
+                    HashMap<String, String> parsedData = new HashMap<String, String>();
+
+                    // adding each child node to HashMap key => value
+                    parsedData.put("idCliente", id);
+                    parsedData.put("primerNombre", title);
+                    //parsedData.put("segundoNombre", duration);
+                    // do what do you want on your interface
+                    parsedDataList.add(parsedData);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            contactList = parsedDataList;
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            ListAdapter adapter = new SimpleAdapter(MainActivity.this, contactList,
+                    R.layout.list_item, new String[]{"idCliente", "primerNombre"},
+                    new int[]{R.id.idCliente, R.id.primerNombre});
+            lv.setAdapter(adapter);
+        }
     }
 }
