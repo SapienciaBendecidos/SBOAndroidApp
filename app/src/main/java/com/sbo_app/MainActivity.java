@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean soundLoaded = false;
     public static final int MAX_NUMBER_STREAMS = 2;
     public static final int SOURCE_QUALITY = 0;
+    private String ABS_PATH;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +71,9 @@ public class MainActivity extends AppCompatActivity {
         btnCantPasajeros.setText(cantPasajerosText + cantidadDePasajeros);
         initSound();
         initLoadButton();
+        ABS_PATH = this.getApplication().getApplicationContext().getFilesDir().getAbsolutePath();
+        Toast.makeText(this, ABS_PATH, Toast.LENGTH_LONG).show();
+        jsonFileAction.writeToFile();
     }
 
     private void initSound() {

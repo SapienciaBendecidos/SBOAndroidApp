@@ -1,18 +1,22 @@
 package com.sbo_app;
 
 import android.os.Environment;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 
-
 public class JsonFileActions {
     public boolean writeToFile(){
         File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
-        File file = new File(dir, "sboEbenezer/example.txt");
+
+        File folder = new File(dir, "sboEbenezer");
+
+        if(!folder.exists())
+            folder.mkdirs();
+
+        File file = new File(folder, "example.txt");
 
         try (FileWriter fileWriter = new FileWriter(file)) {
             fileWriter.append("Writing to file!");
@@ -26,7 +30,7 @@ public class JsonFileActions {
     }
 
     public String readJsonFile(){
-        String json = null;
+        String json;
 
         try {
             File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
