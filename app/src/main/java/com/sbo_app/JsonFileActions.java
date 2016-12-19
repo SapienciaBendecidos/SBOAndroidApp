@@ -1,4 +1,4 @@
-package link.software.nfcapp;
+package com.sbo_app;
 
 import android.os.Environment;
 

@@ -1,4 +1,4 @@
-package link.software.nfcapp;
+package com.sbo_app;
 
 import android.media.AudioManager;
 import android.media.SoundPool;
@@ -33,6 +33,8 @@ import java.io.UnsupportedEncodingException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import link.software.nfcapp.R;
 
 public class MainActivity extends AppCompatActivity {
     private NfcAdapter nfcAdapter;
