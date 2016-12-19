@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/tglCantPasajeros"
-        android:textOn="Cantidad de Pasajeros"
+        android:textOn="@string/cantidad_de_pasajeros"
         android:checked="true"/>
 
     <EditText
@@ -31,7 +31,7 @@
         android:layout_above="@+id/btnWrite" />
 
     <Button
-        android:text="Escribir"
+        android:text="@string/escribir"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"

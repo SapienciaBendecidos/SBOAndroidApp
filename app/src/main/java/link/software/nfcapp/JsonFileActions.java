@@ -7,15 +7,6 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 
 public class JsonFileActions {
@@ -38,23 +29,14 @@ public class JsonFileActions {
         String json = null;
 
         try {
-
             File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
             File file = new File(dir, "sboEbenezer/clientes.json");
-
             InputStream is = new FileInputStream(file);
-
             int size = is.available();
-
             byte[] buffer = new byte[size];
-
             is.read(buffer);
-
             is.close();
-
             json = new String(buffer, "UTF-8");
-
-
         } catch (IOException ex) {
             ex.printStackTrace();
             return null;
