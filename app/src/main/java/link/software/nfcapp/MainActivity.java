@@ -2,7 +2,7 @@ package link.software.nfcapp;
 
 import android.media.AudioManager;
 import android.media.SoundPool;
-import android.provider.MediaStore;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.app.PendingIntent;
 import android.content.Intent;
@@ -10,9 +10,6 @@ import android.content.IntentFilter;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
-import android.nfc.Tag;
-import android.nfc.tech.Ndef;
-import android.nfc.tech.NdefFormatable;
 import android.os.Parcelable;
 import android.os.Bundle;
 import android.util.Log;
@@ -32,26 +29,26 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     private NfcAdapter nfcAdapter;
-    private ToggleButton tglReadWrite;
+    private ToggleButton btnCantPasajeros;
     private EditText txtTagContent;
     private Button btnWrite;
     private JsonFileActions jsonFileAction;
     private ListView lv;
     private String currentId;
     private ArrayList<HashMap<String, String>> clientes;
+    private int cantidadDePasajeros;
+    private final String cantPasajerosText = "Cantidad de pasajeros: ";
     //SoundPool attributes
     private SoundPool soundPool;
     private int soundID;
-    boolean loaded = false;
+    private boolean soundLoaded = false;
     public static final int MAX_NUMBER_STREAMS = 2;
     public static final int SOURCE_QUALITY = 0;
 
@@ -60,13 +57,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        tglReadWrite = (ToggleButton) findViewById(R.id.tglReadWrite);
+        btnCantPasajeros = (ToggleButton) findViewById(R.id.tglCantPasajeros);
         txtTagContent = (EditText) findViewById(R.id.txtTagContent);
         btnWrite = (Button) findViewById(R.id.btnWrite);
         lv = (ListView) findViewById(R.id.list);
         jsonFileAction = new JsonFileActions();
         clientes = new ArrayList<>();
         currentId = "";
+        cantidadDePasajeros = 0;
+        btnCantPasajeros.setText(cantPasajerosText + cantidadDePasajeros);
         initSound();
         initLoadButton();
     }
@@ -77,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
             @Override
             public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
-                loaded = true;
+                soundLoaded = true;
             }
         });
         soundID = soundPool.load(this, R.raw.microwave_beep, 1);
@@ -158,22 +157,12 @@ public class MainActivity extends AppCompatActivity {
         super.onNewIntent(intent);
 
         if (intent.hasExtra(NfcAdapter.EXTRA_TAG)) {
-            Toast.makeText(this, "Tag detected!", Toast.LENGTH_SHORT).show();
+            Parcelable[] parcelables = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
 
-            if (tglReadWrite.isChecked()) {
-                Parcelable[] parcelables = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
-
-                if (parcelables != null && parcelables.length > 0) {
-                    readTextFromMessage((NdefMessage) parcelables[0]);
-                } else {
-                    Toast.makeText(this, "No NDEF messages found!", Toast.LENGTH_LONG).show();
-                }
-
+            if (parcelables != null && parcelables.length > 0) {
+                readTextFromMessage((NdefMessage) parcelables[0]);
             } else {
-                Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-                NdefMessage ndefMessage = createNdefMessage(txtTagContent.getText().toString());
-
-                writeNdefMessage(tag, ndefMessage);
+                Toast.makeText(this, "No NDEF messages found!", Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -221,13 +210,14 @@ public class MainActivity extends AppCompatActivity {
         setListViewAdapter(lista);
     }
 
+    @Nullable
     private HashMap<String,String> searchForClient(String tagContent) {
         final String keyToCompare = "idCliente";
         for(HashMap<String, String> hMap : clientes){
             String clientId = hMap.get(keyToCompare);
             if(clientId.trim().equals(tagContent)){
-                Toast.makeText(this, "Found " + hMap.get(keyToCompare), Toast.LENGTH_SHORT).show();
                 playSound();
+                btnCantPasajeros.setText(cantPasajerosText + (++cantidadDePasajeros));
                 return hMap;
             }
         }
@@ -241,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
         float maxVolume = (float) audioManager
                 .getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         float volume = actualVolume / maxVolume;
-        if (loaded)
+        if (soundLoaded)
             soundPool.play(soundID, volume, volume, 1, 0, 1f);
     }
 
@@ -254,88 +244,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void disableForegroundDispatchSystem() {
         nfcAdapter.disableForegroundDispatch(this);
-    }
-
-    private void formatTag(Tag tag, NdefMessage ndefMessage) {
-        try {
-            NdefFormatable ndefFormatable = NdefFormatable.get(tag);
-
-            if (ndefFormatable == null) {
-                Toast.makeText(this, "Tag is not ndef formattable!", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            ndefFormatable.connect();
-            ndefFormatable.format(ndefMessage);
-            ndefFormatable.close();
-
-            Toast.makeText(this, "Tag written!", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            Log.e("formatTag", e.getMessage());
-        }
-    }
-
-    private void writeNdefMessage(Tag tag, NdefMessage ndefMessage) {
-        try {
-            if (tag == null) {
-                Toast.makeText(this, "Tag object cannot be null", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            Ndef ndef = Ndef.get(tag);
-
-            if (ndef == null) {
-                // format tag with the ndef format and writes the message.
-                formatTag(tag, ndefMessage);
-            } else {
-                ndef.connect();
-
-                if (!ndef.isWritable()) {
-                    Toast.makeText(this, "Tag is not writable!", Toast.LENGTH_SHORT).show();
-                    ndef.close();
-                    return;
-                }
-
-                ndef.writeNdefMessage(ndefMessage);
-                ndef.close();
-                Toast.makeText(this, "Tag written!", Toast.LENGTH_SHORT).show();
-            }
-
-        } catch (Exception e) {
-            Log.e("writeNdefMessage", e.getMessage());
-        }
-    }
-
-    private NdefRecord createTextRecord(String content) {
-        try {
-            byte[] language;
-            language = Locale.getDefault().getLanguage().getBytes("UTF-8");
-
-            final byte[] text = content.getBytes("UTF-8");
-            final int languageSize = language.length;
-            final int textLength = text.length;
-            final ByteArrayOutputStream payload = new ByteArrayOutputStream(1 + languageSize + textLength);
-
-            payload.write((byte) (languageSize & 0x1F));
-            payload.write(language, 0, languageSize);
-            payload.write(text, 0, textLength);
-
-            return new NdefRecord(NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_TEXT, new byte[0], payload.toByteArray());
-
-        } catch (UnsupportedEncodingException e) {
-            Log.e("createTextRecord", e.getMessage());
-        }
-        return null;
-    }
-
-    private NdefMessage createNdefMessage(String content) {
-        NdefRecord ndefRecord = createTextRecord(content);
-        NdefMessage ndefMessage = new NdefMessage(new NdefRecord[]{ndefRecord});
-        return ndefMessage;
-    }
-
-    public void tglReadWriteOnClick(View view) {
-        txtTagContent.setText("");
     }
 
     public String getTextFromNdefRecord(NdefRecord ndefRecord) {

@@ -13,23 +13,21 @@
     <ToggleButton
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/tglReadWrite"
-        android:textOn="Read"
-        android:textOff="Write"
-        android:checked="true"
-        android:onClick="tglReadWriteOnClick"/>
+        android:id="@+id/tglCantPasajeros"
+        android:textOn="Cantidad de Pasajeros"
+        android:checked="true"/>
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/txtTagContent"
-        android:layout_below="@+id/tglReadWrite" />
+        android:layout_below="@+id/tglCantPasajeros" />
 
     <ListView
         android:id="@+id/list"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/tglReadWrite"
+        android:layout_below="@+id/tglCantPasajeros"
         android:layout_above="@+id/btnWrite" />
 
     <Button
