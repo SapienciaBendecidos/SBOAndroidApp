@@ -1,6 +1,11 @@
 package com.sbo_app;
 
 import android.os.Environment;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
@@ -38,15 +43,41 @@ public class JsonFileActions {
             return newPath;
         } catch (IOException e) {
             //Handle exception
-            return newPath + "hey!";
+            return "Dir not found!";
         }
     }
 
-    public String readJsonFile(){
+    public String writeToTripsFile(JSONObject tripJson){
+        /*JSONObject jo = new JSONObject();
+        JSONArray ja = new JSONArray();
+        JSONObject mainObj = new JSONObject();
+
+        try{
+            jo.put("firstName", "John");
+            jo.put("lastName", "Doe");
+            ja.put(jo);
+            mainObj.put("employees", ja);
+        }catch (JSONException e){
+            return "Couldn't write JSON!";
+        }*/
+
+        String newPath = setPath + "trips/newTrip.txt";
+        File file = new File(newPath);
+        try (FileWriter fileWriter = new FileWriter(file)) {
+            fileWriter.append(tripJson.toString());
+            fileWriter.flush();
+
+            return "Written!";
+        }catch(IOException e){
+            return "Couldn't write!";
+        }
+    }
+
+    public String readJsonFile(String fileName){
         String json;
 
         try {
-            File file = new File(setPath + "cardsInformation.txt");
+            File file = new File(setPath + fileName);
             InputStream is = new FileInputStream(file);
             int size = is.available();
             byte[] buffer = new byte[size];
@@ -55,7 +86,7 @@ public class JsonFileActions {
             json = new String(buffer, "UTF-8");
         } catch (IOException ex) {
             ex.printStackTrace();
-            return null;
+            return "Not found!";
         }
 
         return json;

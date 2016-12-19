@@ -47,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<HashMap<String, String>> clientes;
     private int cantidadDePasajeros;
     private final String cantPasajerosText = "Cantidad de pasajeros: ";
+    private String jsonTripsString;
+    private Trip trip;
     //SoundPool attributes
     private SoundPool soundPool;
     private int soundID;
@@ -72,6 +74,21 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, elPath, Toast.LENGTH_LONG).show();
         initSound();
         initLoadButton();
+        //readTripsInformation();
+    }
+
+    private void readTripsInformation() {
+        this.jsonTripsString = jsonFileAction.readJsonFile("/trip/1482186161168.txt");
+        try{
+            JSONObject jsonTripsFile = new JSONObject(jsonTripsString);
+            this.trip = new Trip(jsonTripsFile.getString("routeId"),
+                    jsonTripsFile.getString("routeDirection"),
+                    jsonTripsFile.getString("busPlate"),
+                    jsonTripsFile.getString("routeName"));
+            txtTagContent.setText(trip.getRouteName());
+        }catch (JSONException e){
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void initSound() {
@@ -91,20 +108,36 @@ public class MainActivity extends AppCompatActivity {
         btnWrite.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    String response = jsonFileAction.writeToTripsFile(sendTripJson(trip));
+                    txtTagContent.setText(response);
                 }
                 return true;
             }
         });
     }
 
-    private void loadAndShowJsonData() {
+    private JSONObject sendTripJson(Trip trip) {
+        JSONObject tripJson = new JSONObject();;
         try{
-            JSONArray jArray = new JSONArray(jsonFileAction.readJsonFile());
+            tripJson.put("routeId", trip.getRouteId());
+            tripJson.put("routeDirection", trip.getRouteDirection());
+            tripJson.put("busPlate", trip.getBusPlate());
+            tripJson.put("routeName", trip.getRouteName());
+            tripJson.put("passengers", trip.getPassengers());
+        }catch(JSONException e){
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+
+        return tripJson;
+    }
+
+    private void loadAndShowJsonData() {
+        try {
+            JSONArray jArray = new JSONArray(jsonFileAction.readJsonFile("cardsInformation.txt"));
             fillClientesListWithJsonArray(jArray);
             //setListViewAdapter(clientes);
-        }catch(final JSONException e){
+        } catch (final JSONException e) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -118,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setListViewAdapter(ArrayList<HashMap<String, String>> list) {
         ListAdapter adapter = new SimpleAdapter(MainActivity.this, list,
-                R.layout.list_item, new String[]{ "id_tarjeta", "nombre"},
+                R.layout.list_item, new String[]{"id_tarjeta", "nombre"},
                 new int[]{R.id.id_tarjeta, R.id.nombre});
 
         lv.setAdapter(adapter);
@@ -126,12 +159,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void fillClientesListWithJsonArray(JSONArray jArray) throws JSONException {
         for (int i = 0; i < jArray.length(); i++) {
-            JSONObject c = jArray.getJSONObject(i);
+            JSONObject cliente = jArray.getJSONObject(i);
             StringBuilder sBuilder = new StringBuilder();
 
-            String idCliente = c.getString("id_tarjeta");
-            sBuilder.append(c.getString("primer_nombre") + " ");
-            sBuilder.append(c.getString("primer_apellido") + " ");
+            String idCliente = cliente.getString("id_tarjeta");
+            sBuilder.append(cliente.getString("primer_nombre") + " ");
+            sBuilder.append(cliente.getString("primer_apellido") + " ");
 
             HashMap<String, String> client = new HashMap<>();
             client.put("id_tarjeta", idCliente);
@@ -172,7 +205,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
@@ -211,17 +243,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Nullable
-    private HashMap<String,String> searchForClient(String tagContent) {
+    private HashMap<String, String> searchForClient(String tagContent) {
         final String keyToCompare = "id_tarjeta";
-        for(HashMap<String, String> hMap : clientes){
+        for (HashMap<String, String> hMap : clientes) {
             String clientId = hMap.get(keyToCompare);
-            if(clientId.trim().equals(tagContent)){
-                playSound();
-                btnCantPasajeros.setText(cantPasajerosText + (++cantidadDePasajeros));
+            if (clientId.trim().equals(tagContent)) {
+                clientFoundActions(tagContent);
                 return hMap;
             }
         }
         return null;
+    }
+
+    private void clientFoundActions(String tagContent) {
+        playSound();
+        btnCantPasajeros.setText(cantPasajerosText + (++cantidadDePasajeros));
+        JSONObject passenger = new JSONObject();
+        try {
+            passenger.put("idTarjeta", tagContent);
+        } catch(JSONException e){
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+        //trip.addPassenger(passenger);
     }
 
     private void playSound() {
