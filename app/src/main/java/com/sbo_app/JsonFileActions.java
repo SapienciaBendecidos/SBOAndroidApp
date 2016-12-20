@@ -2,8 +2,6 @@ package com.sbo_app;
 
 import android.os.Environment;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -28,7 +26,7 @@ public class JsonFileActions {
             newPath += dirs[i] + "/";
 
         newPath += setPath;
-        setPath = newPath;
+        this.setPath = newPath;
     }
 
     public String writeToFile(){
@@ -86,7 +84,7 @@ public class JsonFileActions {
             json = new String(buffer, "UTF-8");
         } catch (IOException ex) {
             ex.printStackTrace();
-            return "Not found!";
+            return "Not found!" + setPath + fileName;
         }
 
         return json;

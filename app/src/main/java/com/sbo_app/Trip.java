@@ -16,6 +16,7 @@ public class Trip {
         this.setRouteDirection(routeDirection);
         this.setBusPlate(busPlate);
         this.setRouteName(routeName);
+        passengers = new JSONArray();
     }
 
 

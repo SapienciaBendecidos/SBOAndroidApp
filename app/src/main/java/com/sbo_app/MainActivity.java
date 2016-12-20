@@ -71,15 +71,15 @@ public class MainActivity extends AppCompatActivity {
         cantidadDePasajeros = 0;
         btnCantPasajeros.setText(cantPasajerosText + cantidadDePasajeros);
         String elPath = jsonFileAction.writeToFile();
-        Toast.makeText(this, elPath, Toast.LENGTH_LONG).show();
         initSound();
         initLoadButton();
         //readTripsInformation();
     }
 
     private void readTripsInformation() {
-        this.jsonTripsString = jsonFileAction.readJsonFile("/trip/1482186161168.txt");
+        this.jsonTripsString = jsonFileAction.readJsonFile("trips/1482186161168.txt");
         try{
+            Toast.makeText(this, jsonTripsString, Toast.LENGTH_SHORT).show();
             JSONObject jsonTripsFile = new JSONObject(jsonTripsString);
             this.trip = new Trip(jsonTripsFile.getString("routeId"),
                     jsonTripsFile.getString("routeDirection"),
@@ -136,7 +136,6 @@ public class MainActivity extends AppCompatActivity {
         try {
             JSONArray jArray = new JSONArray(jsonFileAction.readJsonFile("cardsInformation.txt"));
             fillClientesListWithJsonArray(jArray);
-            //setListViewAdapter(clientes);
         } catch (final JSONException e) {
             runOnUiThread(new Runnable() {
                 @Override
@@ -264,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
         } catch(JSONException e){
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
-        //trip.addPassenger(passenger);
+        //1trip.addPassenger(passenger);
     }
 
     private void playSound() {
