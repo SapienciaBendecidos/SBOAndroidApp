@@ -2,6 +2,8 @@ package com.sbo_app;
 
 import android.media.AudioManager;
 import android.media.SoundPool;
+import android.nfc.Tag;
+import android.nfc.tech.MifareClassic;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.app.PendingIntent;
@@ -29,8 +31,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -38,7 +43,7 @@ import link.software.nfcapp.R;
 
 public class MainActivity extends AppCompatActivity {
     private NfcAdapter nfcAdapter;
-    private ToggleButton btnCantPasajeros;
+    private Button btnCantPasajeros;
     private EditText txtTagContent;
     private Button btnWrite;
     private JsonFileActions jsonFileAction;
@@ -56,12 +61,16 @@ public class MainActivity extends AppCompatActivity {
     public static final int MAX_NUMBER_STREAMS = 2;
     public static final int SOURCE_QUALITY = 0;
 
+    //NFC Operation Constants
+
+    private String nfcCode;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        btnCantPasajeros = (ToggleButton) findViewById(R.id.tglCantPasajeros);
+        btnCantPasajeros = (Button) findViewById(R.id.tglCantPasajeros);
         txtTagContent = (EditText) findViewById(R.id.txtTagContent);
         btnWrite = (Button) findViewById(R.id.btnWrite);
         lv = (ListView) findViewById(R.id.list);
@@ -74,6 +83,15 @@ public class MainActivity extends AppCompatActivity {
         initSound();
         initLoadButton();
         //readTripsInformation();
+    }
+
+    private static String byteArrayToHexString(byte[] b) throws Exception {
+        String result = "";
+        for (int i=0; i < b.length; i++) {
+            result +=
+                    Integer.toString( ( b[i] & 0xff ) + 0x100, 16).substring( 1 );
+        }
+        return result;
     }
 
     private void readTripsInformation() {
@@ -190,6 +208,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+
+        MifareClassic tag = MifareClassic.get( (Tag)intent.getParcelableExtra(NfcAdapter.EXTRA_TAG));
+        try {
+            tag.connect();
+            ByteBuffer bb = ByteBuffer.wrap(tag.getTag().getId());
+            this.nfcCode = byteArrayToHexString(bb.array());
+
+            Toast.makeText(this, nfcCode, Toast.LENGTH_LONG).show();
+
+            btnCantPasajeros.setText(cantPasajerosText + (++cantidadDePasajeros));
+        } catch (Exception ex) {
+            Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
+        }
 
         if (intent.hasExtra(NfcAdapter.EXTRA_TAG)) {
             Parcelable[] parcelables = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
