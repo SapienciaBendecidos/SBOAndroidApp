@@ -25,14 +25,11 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 
 import java.nio.ByteBuffer;
@@ -41,7 +38,7 @@ import java.util.HashMap;
 
 import link.software.nfcapp.R;
 
-public class MainActivity extends AppCompatActivity {
+public class ScanActivity extends AppCompatActivity {
     private NfcAdapter nfcAdapter;
     private Button btnCantPasajeros;
     private EditText txtTagContent;
@@ -68,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_scan);
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
         btnCantPasajeros = (Button) findViewById(R.id.tglCantPasajeros);
         txtTagContent = (EditText) findViewById(R.id.txtTagContent);
@@ -167,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setListViewAdapter(ArrayList<HashMap<String, String>> list) {
-        ListAdapter adapter = new SimpleAdapter(MainActivity.this, list,
+        ListAdapter adapter = new SimpleAdapter(ScanActivity.this, list,
                 R.layout.list_item, new String[]{"id_tarjeta", "nombre"},
                 new int[]{R.id.id_tarjeta, R.id.nombre});
 
@@ -309,7 +306,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void enableForegroundDispatchSystem() {
-        Intent intent = new Intent(this, MainActivity.class).addFlags(Intent.FLAG_RECEIVER_REPLACE_PENDING);
+        Intent intent = new Intent(this, ScanActivity.class).addFlags(Intent.FLAG_RECEIVER_REPLACE_PENDING);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
         IntentFilter[] intentFilters = new IntentFilter[]{};
         nfcAdapter.enableForegroundDispatch(this, pendingIntent, intentFilters, null);
