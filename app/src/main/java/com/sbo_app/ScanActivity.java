@@ -4,17 +4,14 @@ import android.media.AudioManager;
 import android.media.SoundPool;
 import android.nfc.Tag;
 import android.nfc.tech.MifareClassic;
+import android.nfc.tech.NfcA;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.nfc.NdefMessage;
-import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
-import android.os.Parcelable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -29,8 +26,6 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.UnsupportedEncodingException;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -58,10 +53,6 @@ public class ScanActivity extends AppCompatActivity {
     public static final int MAX_NUMBER_STREAMS = 2;
     public static final int SOURCE_QUALITY = 0;
 
-    //NFC Operation Constants
-
-    private String nfcCode;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,13 +73,16 @@ public class ScanActivity extends AppCompatActivity {
         //readTripsInformation();
     }
 
-    private static String byteArrayToHexString(byte[] b) throws Exception {
-        String result = "";
-        for (int i=0; i < b.length; i++) {
-            result +=
-                    Integer.toString( ( b[i] & 0xff ) + 0x100, 16).substring( 1 );
-        }
-        return result;
+    private void initSound() {
+        soundPool = new SoundPool(MAX_NUMBER_STREAMS, AudioManager.STREAM_MUSIC, SOURCE_QUALITY);
+        this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
+        soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
+            @Override
+            public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
+                soundLoaded = true;
+            }
+        });
+        soundID = soundPool.load(this, R.raw.microwave_beep, 1);
     }
 
     private void readTripsInformation() {
@@ -104,18 +98,6 @@ public class ScanActivity extends AppCompatActivity {
         }catch (JSONException e){
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         }
-    }
-
-    private void initSound() {
-        soundPool = new SoundPool(MAX_NUMBER_STREAMS, AudioManager.STREAM_MUSIC, SOURCE_QUALITY);
-        this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
-            @Override
-            public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
-                soundLoaded = true;
-            }
-        });
-        soundID = soundPool.load(this, R.raw.microwave_beep, 1);
     }
 
     private void initLoadButton() {
@@ -206,27 +188,22 @@ public class ScanActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
-        MifareClassic tag = MifareClassic.get( (Tag)intent.getParcelableExtra(NfcAdapter.EXTRA_TAG));
+        //MifareClassic tag = MifareClassic.get( (Tag)intent.getParcelableExtra(NfcAdapter.EXTRA_TAG));
+
+        NfcA tag = NfcA.get((Tag)intent.getParcelableExtra(NfcAdapter.EXTRA_TAG));
+        //Tag tag= intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+
         try {
             tag.connect();
-            ByteBuffer bb = ByteBuffer.wrap(tag.getTag().getId());
-            this.nfcCode = byteArrayToHexString(bb.array());
 
-            Toast.makeText(this, nfcCode, Toast.LENGTH_LONG).show();
+            ByteBuffer bb = ByteBuffer.wrap(tag.getTag().getId());
+            this.currentId = byteArrayToHexString(bb.array());
+            searchByCardSerial();
+            Toast.makeText(this, this.currentId, Toast.LENGTH_LONG).show();
 
             btnCantPasajeros.setText(cantPasajerosText + (++cantidadDePasajeros));
         } catch (Exception ex) {
             Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-
-        if (intent.hasExtra(NfcAdapter.EXTRA_TAG)) {
-            Parcelable[] parcelables = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
-
-            if (parcelables != null && parcelables.length > 0) {
-                readTextFromMessage((NdefMessage) parcelables[0]);
-            } else {
-                Toast.makeText(this, "No NDEF messages found!", Toast.LENGTH_LONG).show();
-            }
         }
     }
 
@@ -247,22 +224,7 @@ public class ScanActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void readTextFromMessage(NdefMessage ndefMessage) {
-        NdefRecord[] ndefRecords = ndefMessage.getRecords();
-
-        if (ndefRecords != null && ndefRecords.length > 0) {
-            readNdefRecords(ndefRecords);
-        } else {
-            Toast.makeText(this, "No NDEF records found!", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void readNdefRecords(NdefRecord[] ndefRecords) {
-        String tagContent = "";
-        for (NdefRecord ndefRecord : ndefRecords) {
-            tagContent += getTextFromNdefRecord(ndefRecord);
-        }
-        this.currentId = tagContent;
+    private void searchByCardSerial() {
         HashMap<String, String> client = searchForClient(this.currentId.trim());
         ArrayList<HashMap<String, String>> lista = new ArrayList<>();
         lista.add(client);
@@ -316,18 +278,13 @@ public class ScanActivity extends AppCompatActivity {
         nfcAdapter.disableForegroundDispatch(this);
     }
 
-    public String getTextFromNdefRecord(NdefRecord ndefRecord) {
-        String tagContent = null;
-        try {
-            byte[] payload = ndefRecord.getPayload();
-            String textEncoding = ((payload[0] & 128) == 0) ? "UTF-8" : "UTF-16";
-            int languageSize = payload[0] & 0063;
-            tagContent = new String(payload, languageSize + 1,
-                    payload.length - languageSize - 1, textEncoding);
-        } catch (UnsupportedEncodingException e) {
-            Log.e("getTextFromNdefRecord", e.getMessage(), e);
+    private static String byteArrayToHexString(byte[] b) throws Exception {
+        String result = "";
+        for (int i=0; i < b.length; i++) {
+            result +=
+                    Integer.toString( ( b[i] & 0xff ) + 0x100, 16).substring( 1 );
         }
-        return tagContent;
+        return result;
     }
 
 }
