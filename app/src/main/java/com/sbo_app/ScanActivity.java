@@ -3,7 +3,6 @@ package com.sbo_app;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.nfc.Tag;
-import android.nfc.tech.MifareClassic;
 import android.nfc.tech.NfcA;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -53,6 +52,8 @@ public class ScanActivity extends AppCompatActivity {
     public static final int MAX_NUMBER_STREAMS = 2;
     public static final int SOURCE_QUALITY = 0;
 
+    //For clickable views
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,7 +71,7 @@ public class ScanActivity extends AppCompatActivity {
         String elPath = jsonFileAction.writeToFile();
         initSound();
         initLoadButton();
-        //readTripsInformation();
+        readTripsInformation();
     }
 
     private void initSound() {
@@ -86,7 +87,7 @@ public class ScanActivity extends AppCompatActivity {
     }
 
     private void readTripsInformation() {
-        this.jsonTripsString = jsonFileAction.readJsonFile("trips/1482186161168.txt");
+        this.jsonTripsString = jsonFileAction.readJsonFile("trips/1482190498946.txt");
         try{
             Toast.makeText(this, jsonTripsString, Toast.LENGTH_SHORT).show();
             JSONObject jsonTripsFile = new JSONObject(jsonTripsString);

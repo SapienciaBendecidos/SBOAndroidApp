@@ -1,0 +1,1 @@
+{"routeId":96,"routeDirection":"entrada","busPlate":"89222","routeName":"Span","date":1482190498933,"state":"available","passengers":[{"idTarjeta":2},{"idTarjeta":5},{"idTarjeta":8}]}

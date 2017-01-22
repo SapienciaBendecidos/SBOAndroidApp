@@ -44,7 +44,6 @@ public class JsonFileActions {
             return "Dir not found!";
         }
     }
-
     public String writeToTripsFile(JSONObject tripJson){
         /*JSONObject jo = new JSONObject();
         JSONArray ja = new JSONArray();
