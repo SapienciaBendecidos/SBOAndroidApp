@@ -188,10 +188,7 @@ public class ScanActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
-        //MifareClassic tag = MifareClassic.get( (Tag)intent.getParcelableExtra(NfcAdapter.EXTRA_TAG));
-
         NfcA tag = NfcA.get((Tag)intent.getParcelableExtra(NfcAdapter.EXTRA_TAG));
-        //Tag tag= intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
         try {
             tag.connect();
