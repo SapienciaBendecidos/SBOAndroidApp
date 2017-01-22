@@ -124,7 +124,7 @@ public class ScanActivity extends AppCompatActivity {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    String response = jsonFileAction.writeToTripsFile(sendTripJson(trip));
+                    String response = jsonFileAction.write(sendTripJson(trip), "trips/newTrip.txt");
                     txtTagContent.setText(response);
                 }
                 return true;

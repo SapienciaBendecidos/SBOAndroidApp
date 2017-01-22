@@ -2,19 +2,21 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="64dp">
-    <TextView
-        android:id="@+id/id_tarjeta"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:paddingBottom="2dip"
-        android:textColor="@color/colorAccent" />
+    android:orientation="horizontal"
+    android:padding="40dp">
 
     <TextView
-        android:id="@+id/nombre"
+        android:text="TextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#5d5d5d"
-        android:textStyle="bold" />
+        android:id="@+id/idRuta"
+        android:layout_weight="1" />
+
+    <TextView
+        android:text="TextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/nombre"
+        android:layout_weight="1" />
+
 </LinearLayout>
