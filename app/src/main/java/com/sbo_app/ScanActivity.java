@@ -87,7 +87,7 @@ public class ScanActivity extends AppCompatActivity {
     }
 
     private void readTripsInformation() {
-        this.jsonTripsString = jsonFileAction.readJsonFile("trips/1482190498946.txt");
+        this.jsonTripsString = jsonFileAction.readJsonFile("trips/test.txt");
         try{
             Toast.makeText(this, jsonTripsString, Toast.LENGTH_SHORT).show();
             JSONObject jsonTripsFile = new JSONObject(jsonTripsString);
