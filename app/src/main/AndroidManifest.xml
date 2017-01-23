@@ -29,7 +29,8 @@
 
         <activity android:name="com.sbo_app.ScanActivity" />
         <activity android:name="com.sbo_app.RutasActivity" />
-        <activity android:name="com.sbo_app.BusInfoActivity"></activity>
+        <activity android:name="com.sbo_app.BusInfoActivity" />
+        <activity android:name="com.sbo_app.RouteInfoActivity"></activity>
     </application>
 
 </manifest>

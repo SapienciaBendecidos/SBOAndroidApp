@@ -79,6 +79,9 @@ public class ScanActivity extends AppCompatActivity {
         String elPath = jsonFileAction.writeToFile();
         initSound();
         initLoadButton();
+        Intent intent = getIntent();
+        String plate = intent.getStringExtra("plate");
+        Toast.makeText(this, plate, Toast.LENGTH_SHORT).show();
         //readTripsInformation();
     }
 

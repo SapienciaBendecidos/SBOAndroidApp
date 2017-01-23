@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_bus_info"
     android:layout_width="match_parent"
@@ -11,12 +12,100 @@
     tools:context="com.sbo_app.BusInfoActivity">
 
     <TextView
-        android:text="Informacion del bus"
+        android:text="Casi listos..."
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="11dp"
+        android:id="@+id/textView2"
         android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:text="\n\n\n\n\n\n\n\n\n\n"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="34dp"
+        android:id="@+id/container"
+        android:background="#2b3b5e"
+        android:layout_below="@+id/textView2"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:text="Nombre: "
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:id="@+id/nombreText"
+        android:textColor="#ffffff"
+        android:layout_below="@+id/idRutaText"
+        android:layout_alignStart="@+id/idRutaText"
+        android:textStyle="normal|bold" />
+
+    <TextView
+        android:text="Direccion: "
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:id="@+id/direccionText"
+        android:textColor="#ffffff"
+        android:textStyle="normal|bold"
+        android:layout_below="@+id/nombreText"
+        android:layout_alignStart="@+id/nombreText" />
+
+    <TextView
+        android:text="ID de ruta: "
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:id="@+id/idRutaText"
+        android:textColor="#ffffff"
+        android:layout_marginEnd="54dp"
+        android:textStyle="normal|bold"
+        android:layout_alignTop="@+id/container"
+        android:layout_alignParentEnd="true" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/bus_info"
+        android:id="@+id/imageView"
+        android:layout_alignTop="@+id/idRutaText"
+        android:layout_alignStart="@+id/textView2"
+        android:layout_marginStart="30dp" />
+
+    <TextView
+        android:text="Información de ruta"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView9"
+        android:layout_above="@+id/imageView"
+        android:layout_centerHorizontal="true"
+        android:textStyle="normal|bold"
+        android:textColor="#ffffff" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:ems="10"
+        android:layout_below="@+id/container"
         android:layout_alignParentStart="true"
-        android:layout_marginStart="67dp"
-        android:layout_marginTop="85dp"
-        android:id="@+id/textView2" />
+        android:layout_marginTop="40dp"
+        android:id="@+id/plateEditText"
+        android:hint="Introduzca placa del vehiculo" />
+
+    <Button
+        android:text="Continuar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/plateEditText"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="31dp"
+        android:id="@+id/continuarButton"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:background="@android:color/holo_green_light"
+        android:textSize="18sp"
+        android:textStyle="normal|bold"
+        android:elevation="8dp" />
 </RelativeLayout>

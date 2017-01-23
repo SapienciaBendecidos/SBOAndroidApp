@@ -47,16 +47,15 @@ public class RutasActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
 
-                // ListView Clicked item index
-                //int itemPosition     = position;
-
                 // ListView Clicked item value
                 HashMap<String, String> itemValue    = (HashMap<String, String>) lv.getItemAtPosition(position);
                 String idRuta = itemValue.get("idRuta");
+                String nombre = itemValue.get("nombre");
                 // Then you start a new Activity via Intent
                 Intent intent = new Intent();
-                intent.setClass(RutasActivity.this, BusInfoActivity.class);
+                intent.setClass(RutasActivity.this, RouteInfoActivity.class);
                 intent.putExtra("idRuta", Integer.parseInt(idRuta));
+                intent.putExtra("nombre", nombre);
                 startActivity(intent);
             }
 
