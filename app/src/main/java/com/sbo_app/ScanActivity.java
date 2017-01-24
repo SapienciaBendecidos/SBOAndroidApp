@@ -110,10 +110,12 @@ public class ScanActivity extends AppCompatActivity {
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     Date dateForFile = new Date();
-                    String tripFileName = "trips/" + dateForFile.getTime();
+                    String tripFileName = "/trips/" + dateForFile.getTime();
                     System.out.println(tripFileName);
                     String response = jsonFileAction.write(sendTripJson(trip), tripFileName);
                     txtTagContent.setText(response);
+                    startActivity(new Intent(ScanActivity.this,
+                            HomeActivity.class));
                 }
                 return true;
             }
@@ -123,21 +125,22 @@ public class ScanActivity extends AppCompatActivity {
     private JSONObject sendTripJson(Trip trip) {
         JSONObject tripJson = new JSONObject();;
         try{
+            tripJson.put("driverName", "none");
             tripJson.put("routeId", trip.getRouteId());
             tripJson.put("routeDirection", trip.getRouteDirection());
             tripJson.put("busPlate", trip.getBusPlate());
             tripJson.put("routeName", trip.getRouteName());
+            tripJson.put("date", new Date().toString());
             tripJson.put("passengers", trip.getPassengers());
         }catch(JSONException e){
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
-
         return tripJson;
     }
 
     private void loadAndShowJsonData() {
         try {
-            JSONArray jArray = new JSONArray(jsonFileAction.readJsonFile("cardsInformation.txt"));
+            JSONArray jArray = new JSONArray(jsonFileAction.readFromFile("cardsInformation.txt", getApplicationContext()));
             fillClientesListWithJsonArray(jArray);
         } catch (final JSONException e) {
             runOnUiThread(new Runnable() {
