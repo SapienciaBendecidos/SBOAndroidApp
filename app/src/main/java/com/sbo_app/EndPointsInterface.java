@@ -16,4 +16,7 @@ public interface EndPointsInterface {
 
     @GET("/Tarjetas/getWithClient")
     void getCards(Callback<Cards> cardsCb);
+
+    @POST("/Viajes/postVariousTransactions")
+    void postTrip(@Body TripRequest trip, Callback<TripRequest> tripCb);
 }

@@ -2,6 +2,7 @@ package com.sbo_app;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,10 +17,14 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import link.software.nfcapp.R;
-
+import java.util.Date;
+import java.util.ListIterator;
 
 import link.software.nfcapp.R;
 import retrofit.Callback;
@@ -71,7 +76,7 @@ public class HomeActivity extends AppCompatActivity {
                 "{\"nombre\" : \"Juan Lindo\", \"idRuta\" : 2, \"costo\": 8}"+
         "]";*/
         try {
-            restInt.getRutas(new Callback<List<Ruta>>() {
+            /*restInt.getRutas(new Callback<List<Ruta>>() {
                 @Override
                 public void success(List<Ruta> model, Response response) {
                     String rutas = new Gson().toJson(model);
@@ -101,7 +106,31 @@ public class HomeActivity extends AppCompatActivity {
                     System.out.println("Error: " + err);
                     Toast.makeText(HomeActivity.this, err, Toast.LENGTH_SHORT).show();
                 }
+            });*/
+            TripRequest trip = new TripRequest();
+            trip.setBusConductor("nada");
+            trip.setBusPlaca("123asd");
+            trip.setIdRuta(new Integer(5));
+            trip.setTipoMovimiento("entrada");
+            trip.setFecha(new Date().toString());
+            List<Integer> cards = new ArrayList<Integer>();
+            cards.add(new Integer(1));
+            cards.add(new Integer(3));
+            cards.add(new Integer(2));
+            trip.setTransacciones(cards);
+
+            restInt.postTrip(trip, new Callback<TripRequest>() {
+                @Override
+                public void success(TripRequest tripRequest, Response response) {
+                    Toast.makeText(HomeActivity.this, response.toString(), Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void failure(RetrofitError error) {
+                    Toast.makeText(HomeActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
             });
+
         }catch (Exception e){
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
