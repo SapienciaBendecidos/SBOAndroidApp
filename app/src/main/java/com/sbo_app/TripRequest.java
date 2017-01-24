@@ -23,7 +23,7 @@ public class TripRequest {
     private String busConductor;
     @SerializedName("transacciones")
     @Expose
-    private List<Integer> transacciones = null;
+    private List<String> transacciones = null;
 
     public Integer getIdRuta() {
         return idRuta;
@@ -65,11 +65,11 @@ public class TripRequest {
         this.busConductor = busConductor;
     }
 
-    public List<Integer> getTransacciones() {
+    public List<String> getTransacciones() {
         return transacciones;
     }
 
-    public void setTransacciones(List<Integer> transacciones) {
+    public void setTransacciones(List<String> transacciones) {
         this.transacciones = transacciones;
     }
 }

@@ -41,7 +41,7 @@ import static com.squareup.okhttp.Protocol.get;
 
 public class HomeActivity extends AppCompatActivity {
     private JsonFileActions jsonFileAction;
-    private static String url = "http://9611b196.ngrok.io/api";
+    private static String url = "http://c6d6aeb7.ngrok.io/api";
     private RequestInterceptor requestInterceptor;
     private RestAdapter radapter;
     private EndPointsInterface restInt;
@@ -135,9 +135,9 @@ public class HomeActivity extends AppCompatActivity {
                     Toast.makeText(HomeActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });*/
-            //String tripData = "{\"idRuta\": 5, \"busPlaca\": \"nose\", \"busConductor\":\"luis\", \"tipoMovimiento\": \"entrada\", \"fecha\": \"2017-01-24T05:47:58.000Z\", \"transacciones\":[1,5,4]}";
-            //String returned = jsonFileAction.writeTrip(tripData, "/trips/trip1.txt");
-            //Toast.makeText(HomeActivity.this, returned, Toast.LENGTH_SHORT).show();
+            String tripData = "{\"idRuta\": 5, \"busPlaca\": \"nose\", \"busConductor\":\"luis\", \"tipoMovimiento\": \"entrada\", \"fecha\": \"2017-01-24T05:47:58.000Z\", \"transacciones\":[\"0bwMcjlzjkR\",\"0ETWGgz\",\"0fFB3pw\"]}";
+            String returned = jsonFileAction.writeTrip(tripData, "/trips/trip1.txt");
+            Toast.makeText(HomeActivity.this, returned, Toast.LENGTH_SHORT).show();
 
             //String data =jsonFileAction.readJsonFile("/trips/trip1.txt");
             //JSONObject jsonObject = new JSONObject(data);
@@ -161,11 +161,11 @@ public class HomeActivity extends AppCompatActivity {
                     trip.setIdRuta(jsonObject.getInt("idRuta"));
                     trip.setTipoMovimiento(jsonObject.getString("tipoMovimiento"));
                     trip.setFecha(jsonObject.getString("fecha"));
-                    List<Integer> cards = new ArrayList<Integer>();
+                    List<String> cards = new ArrayList<String>();
                     JSONArray trans = jsonObject.getJSONArray("transacciones");
                     for(int j=0; j< trans.length();j++){
-                        Toast.makeText(HomeActivity.this, "idss: "+trans.getInt(j), Toast.LENGTH_SHORT).show();
-                        cards.add(new Integer(trans.getInt(j)));
+                        Toast.makeText(HomeActivity.this, "idss: "+trans.get(j), Toast.LENGTH_SHORT).show();
+                        cards.add(trans.get(j).toString());
                     }
                     trip.setTransacciones(cards);
 
