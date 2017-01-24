@@ -3,7 +3,6 @@ package com.sbo_app;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.nfc.Tag;
-import android.nfc.tech.MifareClassic;
 import android.nfc.tech.NfcA;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -39,13 +38,14 @@ public class ScanActivity extends AppCompatActivity {
     private EditText txtTagContent;
     private Button btnWrite;
     private JsonFileActions jsonFileAction;
-    private ListView lv;
+    private ListView viajerosListView;
     private String currentId;
     private ArrayList<HashMap<String, String>> clientes;
     private int cantidadDePasajeros;
     private final String cantPasajerosText = "Cantidad de pasajeros: ";
     private String jsonTripsString;
     private Trip trip;
+    private ArrayList<HashMap<String, String>> lista = new ArrayList<>();
     //SoundPool attributes
     private SoundPool soundPool;
     private int soundID;
@@ -61,19 +61,17 @@ public class ScanActivity extends AppCompatActivity {
         btnCantPasajeros = (Button) findViewById(R.id.tglCantPasajeros);
         txtTagContent = (EditText) findViewById(R.id.txtTagContent);
         btnWrite = (Button) findViewById(R.id.btnWrite);
-        lv = (ListView) findViewById(R.id.list);
+        viajerosListView = (ListView) findViewById(R.id.list);
         jsonFileAction = new JsonFileActions();
         clientes = new ArrayList<>();
         currentId = "";
         cantidadDePasajeros = 0;
         btnCantPasajeros.setText(cantPasajerosText + cantidadDePasajeros);
-        String elPath = jsonFileAction.writeToFile();
         initSound();
         initLoadButton();
         Intent intent = getIntent();
         String plate = intent.getStringExtra("plate");
         Toast.makeText(this, plate, Toast.LENGTH_SHORT).show();
-        //readTripsInformation();
     }
 
     private void initSound() {
@@ -86,21 +84,6 @@ public class ScanActivity extends AppCompatActivity {
             }
         });
         soundID = soundPool.load(this, R.raw.microwave_beep, 1);
-    }
-
-    private void readTripsInformation() {
-        this.jsonTripsString = jsonFileAction.readJsonFile("trips/1482186161168.txt");
-        try{
-            Toast.makeText(this, jsonTripsString, Toast.LENGTH_SHORT).show();
-            JSONObject jsonTripsFile = new JSONObject(jsonTripsString);
-            this.trip = new Trip(jsonTripsFile.getString("routeId"),
-                    jsonTripsFile.getString("routeDirection"),
-                    jsonTripsFile.getString("busPlate"),
-                    jsonTripsFile.getString("routeName"));
-            txtTagContent.setText(trip.getRouteName());
-        }catch (JSONException e){
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-        }
     }
 
     private void initLoadButton() {
@@ -153,7 +136,7 @@ public class ScanActivity extends AppCompatActivity {
                 R.layout.list_item, new String[]{"id_tarjeta", "nombre"},
                 new int[]{R.id.id_tarjeta, R.id.nombre});
 
-        lv.setAdapter(adapter);
+        viajerosListView.setAdapter(adapter);
     }
 
     private void fillClientesListWithJsonArray(JSONArray jArray) throws JSONException {
@@ -200,8 +183,6 @@ public class ScanActivity extends AppCompatActivity {
             this.currentId = byteArrayToHexString(bb.array());
             searchByCardSerial();
             Toast.makeText(this, this.currentId, Toast.LENGTH_LONG).show();
-
-            btnCantPasajeros.setText(cantPasajerosText + (++cantidadDePasajeros));
         } catch (Exception ex) {
             Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
         }
@@ -226,7 +207,7 @@ public class ScanActivity extends AppCompatActivity {
 
     private void searchByCardSerial() {
         HashMap<String, String> client = searchForClient(this.currentId.trim());
-        ArrayList<HashMap<String, String>> lista = new ArrayList<>();
+
         lista.add(client);
         setListViewAdapter(lista);
     }
@@ -253,7 +234,7 @@ public class ScanActivity extends AppCompatActivity {
         } catch(JSONException e){
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
-        //1trip.addPassenger(passenger);
+        trip.addPassenger(passenger);
     }
 
     private void playSound() {
