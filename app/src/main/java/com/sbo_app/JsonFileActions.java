@@ -24,6 +24,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.UserHandle;
+import android.support.annotation.BoolRes;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.Display;
@@ -40,26 +41,24 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.List;
 
+import static android.R.attr.path;
+import static android.R.attr.x;
 import static android.content.Context.MODE_PRIVATE;
 
 public class JsonFileActions {
     private String setPath;
 
-    public JsonFileActions(){
-        setPath = "0/Android/data/com.sbo_app/files/";
+    public JsonFileActions() {
         File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
-        //Android/data/com.sbo_app/files
         String abPath = dir.getAbsolutePath();
-        String [] dirs = abPath.split("/");
-
-        String newPath = "";
-
-        for(int i = 0; i < 3; ++i)
-            newPath += dirs[i] + "/";
-
-        newPath += setPath;
-        this.setPath = newPath;
+        this.setPath = abPath;
+        File tripsDir = new File(setPath + "/trips");
+        if (!tripsDir.exists()) {
+            tripsDir.mkdirs();
+            System.out.println("Created trips dir");
+        }
     }
 
     public String writeToFile(){
@@ -117,6 +116,27 @@ public class JsonFileActions {
         }
     }
 
+    public String writeTrip(String data, String fileName){
+        try {
+            /*FileOutputStream outputStreamWriter = new FileOutputStream(new File(fileName),true);
+            outputStreamWriter.write(data.getBytes());
+            outputStreamWriter.close();*/
+            //File theFile = new File(Environment.getExternalStorageDirectory()+"/trips");
+            //boolean hizo = theFile.mkdirs();
+
+
+            File file = new File(this.setPath+fileName);
+            FileWriter fileWriter = new FileWriter(file);
+            fileWriter.append(data);
+            fileWriter.flush();
+            return "Written!";
+        }
+        catch (Exception e) {
+            Log.e("Exception", "File write failed: " + e.toString());
+            return e.getMessage();
+        }
+    }
+
     public  String readFromFile(String fileName,Context context) {
 
         String ret = "";
@@ -146,7 +166,22 @@ public class JsonFileActions {
 
         return ret;
     }
+    public boolean getTripsName(List<String> array){
+        File folder = new File(setPath+"/trips");
+        boolean found =false;
+        for (final File fileEntry : folder.listFiles()) {
+            if (!fileEntry.isDirectory()) {
+                array.add(fileEntry.getName());
+                found=true;
+            }
+        }
+        return found;
+    }
 
+    public boolean deleteFile(String name){
+        File file = new File(setPath+"/trips/"+name);
+        return (file.delete());
+    }
     public String readJsonFile(String fileName){
         String json;
 

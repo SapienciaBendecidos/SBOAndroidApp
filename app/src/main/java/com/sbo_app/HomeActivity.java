@@ -11,9 +11,11 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -32,6 +34,9 @@ import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
+import static com.squareup.okhttp.Protocol.get;
 
 
 public class HomeActivity extends AppCompatActivity {
@@ -107,7 +112,7 @@ public class HomeActivity extends AppCompatActivity {
                     Toast.makeText(HomeActivity.this, err, Toast.LENGTH_SHORT).show();
                 }
             });*/
-            TripRequest trip = new TripRequest();
+            /*TripRequest trip = new TripRequest();
             trip.setBusConductor("nada");
             trip.setBusPlaca("123asd");
             trip.setIdRuta(new Integer(5));
@@ -129,8 +134,56 @@ public class HomeActivity extends AppCompatActivity {
                 public void failure(RetrofitError error) {
                     Toast.makeText(HomeActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
                 }
-            });
+            });*/
+            //String tripData = "{\"idRuta\": 5, \"busPlaca\": \"nose\", \"busConductor\":\"luis\", \"tipoMovimiento\": \"entrada\", \"fecha\": \"2017-01-24T05:47:58.000Z\", \"transacciones\":[1,5,4]}";
+            //String returned = jsonFileAction.writeTrip(tripData, "/trips/trip1.txt");
+            //Toast.makeText(HomeActivity.this, returned, Toast.LENGTH_SHORT).show();
 
+            //String data =jsonFileAction.readJsonFile("/trips/trip1.txt");
+            //JSONObject jsonObject = new JSONObject(data);
+            //Toast.makeText(HomeActivity.this, jsonObject.getString("busConductor"), Toast.LENGTH_SHORT).show();
+            //JSONArray array = jsonObject.getJSONArray("transacciones");
+            //for(int i =0; i < array.length();i++){
+              //  int cardID = Integer.parseInt();
+                //Toast.makeText(HomeActivity.this, "id: "+array.get(0), Toast.LENGTH_SHORT).show();
+            //}
+
+            List<String>array = new ArrayList<String>();
+            boolean encontro = jsonFileAction.getTripsName(array);
+            if(encontro){
+                for(int i =0; i < array.size();i++){
+                    final String name = array.get(i);
+                    String data =jsonFileAction.readJsonFile("/trips/"+name);
+                    JSONObject jsonObject = new JSONObject(data);
+                    TripRequest trip = new TripRequest();
+                    trip.setBusConductor(jsonObject.getString("busConductor"));
+                    trip.setBusPlaca(jsonObject.getString("busPlaca"));
+                    trip.setIdRuta(jsonObject.getInt("idRuta"));
+                    trip.setTipoMovimiento(jsonObject.getString("tipoMovimiento"));
+                    trip.setFecha(jsonObject.getString("fecha"));
+                    List<Integer> cards = new ArrayList<Integer>();
+                    JSONArray trans = jsonObject.getJSONArray("transacciones");
+                    for(int j=0; j< trans.length();j++){
+                        Toast.makeText(HomeActivity.this, "idss: "+trans.getInt(j), Toast.LENGTH_SHORT).show();
+                        cards.add(new Integer(trans.getInt(j)));
+                    }
+                    trip.setTransacciones(cards);
+
+                    restInt.postTrip(trip, new Callback<TripRequest>() {
+                        @Override
+                        public void success(TripRequest tripRequest, Response response) {
+                            boolean deleted = jsonFileAction.deleteFile(name);
+                            Toast.makeText(HomeActivity.this, deleted?"Posted: "+name: "error al borrar", Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void failure(RetrofitError error) {
+                            Toast.makeText(HomeActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    //Toast.makeText(HomeActivity.this, "ids: "+array.get(i), Toast.LENGTH_SHORT).show();
+                }
+            }
         }catch (Exception e){
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
