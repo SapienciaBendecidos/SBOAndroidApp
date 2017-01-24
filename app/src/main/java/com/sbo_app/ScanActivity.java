@@ -28,24 +28,28 @@ import org.json.JSONObject;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 import link.software.nfcapp.R;
 
 public class ScanActivity extends AppCompatActivity {
+    //UI and NFC components
     private NfcAdapter nfcAdapter;
     private Button btnCantPasajeros;
     private EditText txtTagContent;
     private Button btnWrite;
     private JsonFileActions jsonFileAction;
     private ListView viajerosListView;
+    //Attributes and lists
     private String currentId;
     private ArrayList<HashMap<String, String>> clientes;
     private int cantidadDePasajeros;
     private final String cantPasajerosText = "Cantidad de pasajeros: ";
     private String jsonTripsString;
     private Trip trip;
-    private ArrayList<HashMap<String, String>> lista = new ArrayList<>();
+    private ArrayList<HashMap<String, String>> listaViajeros = new ArrayList<>();
     //SoundPool attributes
     private SoundPool soundPool;
     private int soundID;
@@ -67,11 +71,24 @@ public class ScanActivity extends AppCompatActivity {
         currentId = "";
         cantidadDePasajeros = 0;
         btnCantPasajeros.setText(cantPasajerosText + cantidadDePasajeros);
+        initTripInfo();
         initSound();
         initLoadButton();
-        Intent intent = getIntent();
-        String plate = intent.getStringExtra("plate");
-        Toast.makeText(this, plate, Toast.LENGTH_SHORT).show();
+    }
+
+    private void initTripInfo() {
+        try {
+            Intent intent = getIntent();
+            int idRuta = intent.getIntExtra("idRuta", 0);
+            String nombre = intent.getStringExtra("nombre");
+            int dir = intent.getIntExtra("routeDirection", 0);
+            String direccion = dir == 1 ? "Entrada" : "Salida";
+            String plate = intent.getStringExtra("plate");
+
+            this.trip = new Trip(idRuta, direccion, plate, nombre);
+        }catch (Exception e){
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void initSound() {
@@ -92,7 +109,10 @@ public class ScanActivity extends AppCompatActivity {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    String response = jsonFileAction.write(sendTripJson(trip), "trips/newTrip.txt");
+                    Date dateForFile = new Date();
+                    String tripFileName = "trips/" + dateForFile.getTime();
+                    System.out.println(tripFileName);
+                    String response = jsonFileAction.write(sendTripJson(trip), tripFileName);
                     txtTagContent.setText(response);
                 }
                 return true;
@@ -175,10 +195,8 @@ public class ScanActivity extends AppCompatActivity {
         super.onNewIntent(intent);
 
         NfcA tag = NfcA.get((Tag)intent.getParcelableExtra(NfcAdapter.EXTRA_TAG));
-
         try {
             tag.connect();
-
             ByteBuffer bb = ByteBuffer.wrap(tag.getTag().getId());
             this.currentId = byteArrayToHexString(bb.array());
             searchByCardSerial();
@@ -206,17 +224,28 @@ public class ScanActivity extends AppCompatActivity {
     }
 
     private void searchByCardSerial() {
-        HashMap<String, String> client = searchForClient(this.currentId.trim());
+        //Search if client already exists
+        HashMap<String, String> client;
+        if( (client = searchForClient(this.currentId.trim(), listaViajeros)) != null)
+        {
+            Toast.makeText(this, "El viajero está siendo registrado de nuevo.", Toast.LENGTH_SHORT).show();
+        }else
+        {
+            client = searchForClient(this.currentId.trim(), clientes);
+        }
 
-        lista.add(client);
-        setListViewAdapter(lista);
+        if(client != null){
+            listaViajeros.add(client);
+            setListViewAdapter(listaViajeros);
+        }
     }
 
     @Nullable
-    private HashMap<String, String> searchForClient(String tagContent) {
+    private HashMap<String, String> searchForClient(String tagContent, List<HashMap<String, String> > clientes) {
         final String keyToCompare = "id_tarjeta";
         for (HashMap<String, String> hMap : clientes) {
             String clientId = hMap.get(keyToCompare);
+
             if (clientId.trim().equals(tagContent)) {
                 clientFoundActions(tagContent);
                 return hMap;
