@@ -4,13 +4,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class Trip {
-    private String routeId;
+    private int routeId;
     private String routeDirection;
     private String busPlate;
     private String  routeName;
     private JSONArray passengers;
 
-    public Trip(String routeId, String routeDirection, String busPlate,
+    public Trip(int routeId, String routeDirection, String busPlate,
                 String routeName){
         this.setRouteId(routeId);
         this.setRouteDirection(routeDirection);
@@ -20,11 +20,11 @@ public class Trip {
     }
 
 
-    public String getRouteId() {
+    public int getRouteId() {
         return routeId;
     }
 
-    public void setRouteId(String routeId) {
+    public void setRouteId(int routeId) {
         this.routeId = routeId;
     }
 
