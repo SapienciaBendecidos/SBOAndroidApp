@@ -8,30 +8,53 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 
 import link.software.nfcapp.R;
 
 
 import link.software.nfcapp.R;
+import retrofit.Callback;
+import retrofit.RequestInterceptor;
+import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
-import static com.sbo_app.Requester.API_URL;
 
 public class HomeActivity extends AppCompatActivity {
     private JsonFileActions jsonFileAction;
-    private Requester requester;
+    private static String url = "http://9611b196.ngrok.io/api";
+    private RequestInterceptor requestInterceptor;
+    private RestAdapter radapter;
+    private EndPointsInterface restInt;
     String data="";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         jsonFileAction = new JsonFileActions();
-        requester = new Requester();
+        requestInterceptor = new RequestInterceptor() {
+            @Override
+            public void intercept(RequestFacade request) {
+                request.addHeader("Accept", "application/json");
+                request.addHeader("Content-Type", "application/json");
+            }
+        };
+
+        radapter = new RestAdapter.Builder()
+                .setRequestInterceptor(requestInterceptor)
+                .setEndpoint(url).
+                        build();
+
+        restInt = radapter.create(EndPointsInterface.class);
         findViewById(R.id.cargarRutasButton).
                 setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -48,56 +71,39 @@ public class HomeActivity extends AppCompatActivity {
                 "{\"nombre\" : \"Juan Lindo\", \"idRuta\" : 2, \"costo\": 8}"+
         "]";*/
         try {
-            String data = requester.getRutas();//"[{\"nombre\":\"Planeta\",\"idRuta\":\"1\", \"costo\": \"25\"}, {\"nombre\":\"Country\",\"idRuta\":\"2\", \"costo\": \"23\"} ]";
-            //String returned = jsonFileAction.writeToFile(data, "routes.txt",getApplicationContext());
-            //Toast.makeText(this, data, Toast.LENGTH_SHORT).show();
-            new RetrieveFeedTask().execute();
+            restInt.getRutas(new Callback<List<Ruta>>() {
+                @Override
+                public void success(List<Ruta> model, Response response) {
+                    String rutas = new Gson().toJson(model);
+                    String returned = jsonFileAction.writeToFile(rutas, "routes.txt",getApplicationContext());
+                    //System.out.println(returned);
+                    Toast.makeText(HomeActivity.this, returned, Toast.LENGTH_SHORT).show();
+                }
+                @Override
+                public void failure(RetrofitError error) {
+                    String err = error.getMessage();
+                    System.out.println("Error: " + err);
+                    Toast.makeText(HomeActivity.this, err, Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            restInt.getCards(new Callback<Cards>() {
+                @Override
+                public void success(Cards cards, Response response) {
+                    String cardsInfo = new Gson().toJson(cards.getGetWithClient());
+                    String returned = jsonFileAction.writeToFile(cardsInfo, "cardsInformation.txt",getApplicationContext());
+                    Toast.makeText(HomeActivity.this, returned, Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void failure(RetrofitError error) {
+                    String err = error.getMessage();
+                    System.out.println("Error: " + err);
+                    Toast.makeText(HomeActivity.this, err, Toast.LENGTH_SHORT).show();
+                }
+            });
         }catch (Exception e){
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    class RetrieveFeedTask extends AsyncTask<Void, Void, String> {
-
-
-        protected void onPreExecute() {
-            System.out.println("Begining rutas' reuquest");
-        }
-
-        protected String doInBackground(Void... urls) {
-
-            try {
-                URL url = new URL(API_URL + "api/Rutas");
-                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                try {
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String line;
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                    }
-                    bufferedReader.close();
-                    data = stringBuilder.toString();
-                    System.out.println(data);
-                    return stringBuilder.toString();
-                }
-                finally{
-                    urlConnection.disconnect();
-                }
-            }
-            catch(Exception e) {
-                Log.e("ERROR", e.getMessage(), e);
-                return null;
-            }
-        }
-
-        protected void onPostExecute(String response) {
-            if(response == null) {
-                response = "THERE WAS AN ERROR";
-            }
-            String returned = jsonFileAction.writeToFile(data, "routes.txt",getApplicationContext());
-            System.out.println(returned);
-            Toast.makeText(HomeActivity.this, data, Toast.LENGTH_SHORT).show();
         }
     }
 
