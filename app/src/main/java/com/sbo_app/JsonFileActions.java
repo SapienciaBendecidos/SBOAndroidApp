@@ -1,79 +1,47 @@
 package com.sbo_app;
 
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.IntentSender;
-import android.content.ServiceConnection;
-import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
-import android.content.res.Configuration;
-import android.content.res.Resources;
-import android.database.DatabaseErrorHandler;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
-import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.UserHandle;
-import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.Display;
-
 import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
-import static android.content.Context.MODE_PRIVATE;
-
 public class JsonFileActions {
     private String setPath;
 
     public JsonFileActions(){
-        setPath = "0/Android/data/com.sbo_app/files/";
         File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
-        //Android/data/com.sbo_app/files
         String abPath = dir.getAbsolutePath();
-        String [] dirs = abPath.split("/");
 
-        String newPath = "";
-
-        for(int i = 0; i < 3; ++i)
-            newPath += dirs[i] + "/";
-
-        newPath += setPath;
-        this.setPath = newPath;
+        this.setPath = abPath;
+        File tripsDir = new File(setPath + "/trips");
+        if(!tripsDir.exists()){
+            tripsDir.mkdir();
+            System.out.println("Created trips dir");
+        }
     }
 
     public String writeToFile(){
 
-        String newPath = setPath + "examples.txt";
+        String newPath = setPath + "/trips/examples.txt";
         File file = new File(newPath);
 
         try (FileWriter fileWriter = new FileWriter(file)) {
             fileWriter.append("Writing to file by Raim!");
             fileWriter.flush();
-
+            System.out.println("Wrote file in trips dir");
             return newPath;
         } catch (IOException e) {
             //Handle exception
+            System.out.println(e.getMessage());
             return "Dir not found!";
         }
     }

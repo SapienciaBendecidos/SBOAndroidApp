@@ -46,6 +46,7 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         jsonFileAction = new JsonFileActions();
+        jsonFileAction.writeToFile();
         requestInterceptor = new RequestInterceptor() {
             @Override
             public void intercept(RequestFacade request) {
