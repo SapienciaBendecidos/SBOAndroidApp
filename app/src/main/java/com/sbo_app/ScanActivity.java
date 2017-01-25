@@ -3,7 +3,6 @@ package com.sbo_app;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.nfc.Tag;
-import android.nfc.tech.MifareClassic;
 import android.nfc.tech.NfcA;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -29,23 +28,28 @@ import org.json.JSONObject;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 import link.software.nfcapp.R;
 
 public class ScanActivity extends AppCompatActivity {
+    //UI and NFC components
     private NfcAdapter nfcAdapter;
     private Button btnCantPasajeros;
     private EditText txtTagContent;
     private Button btnWrite;
     private JsonFileActions jsonFileAction;
-    private ListView lv;
+    private ListView viajerosListView;
+    //Attributes and lists
     private String currentId;
     private ArrayList<HashMap<String, String>> clientes;
     private int cantidadDePasajeros;
     private final String cantPasajerosText = "Cantidad de pasajeros: ";
     private String jsonTripsString;
     private Trip trip;
+    private ArrayList<HashMap<String, String>> listaViajeros = new ArrayList<>();
     //SoundPool attributes
     private SoundPool soundPool;
     private int soundID;
@@ -61,19 +65,30 @@ public class ScanActivity extends AppCompatActivity {
         btnCantPasajeros = (Button) findViewById(R.id.tglCantPasajeros);
         txtTagContent = (EditText) findViewById(R.id.txtTagContent);
         btnWrite = (Button) findViewById(R.id.btnWrite);
-        lv = (ListView) findViewById(R.id.list);
+        viajerosListView = (ListView) findViewById(R.id.list);
         jsonFileAction = new JsonFileActions();
         clientes = new ArrayList<>();
         currentId = "";
         cantidadDePasajeros = 0;
         btnCantPasajeros.setText(cantPasajerosText + cantidadDePasajeros);
-        String elPath = jsonFileAction.writeToFile();
+        initTripInfo();
         initSound();
         initLoadButton();
-        Intent intent = getIntent();
-        String plate = intent.getStringExtra("plate");
-        Toast.makeText(this, plate, Toast.LENGTH_SHORT).show();
-        //readTripsInformation();
+    }
+
+    private void initTripInfo() {
+        try {
+            Intent intent = getIntent();
+            int idRuta = intent.getIntExtra("idRuta", 0);
+            String nombre = intent.getStringExtra("nombre");
+            int dir = intent.getIntExtra("routeDirection", 0);
+            String direccion = dir == 1 ? "Entrada" : "Salida";
+            String plate = intent.getStringExtra("plate");
+
+            this.trip = new Trip(idRuta, direccion, plate, nombre);
+        }catch (Exception e){
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void initSound() {
@@ -88,29 +103,19 @@ public class ScanActivity extends AppCompatActivity {
         soundID = soundPool.load(this, R.raw.microwave_beep, 1);
     }
 
-    private void readTripsInformation() {
-        this.jsonTripsString = jsonFileAction.readJsonFile("trips/1482186161168.txt");
-        try{
-            Toast.makeText(this, jsonTripsString, Toast.LENGTH_SHORT).show();
-            JSONObject jsonTripsFile = new JSONObject(jsonTripsString);
-            this.trip = new Trip(jsonTripsFile.getString("routeId"),
-                    jsonTripsFile.getString("routeDirection"),
-                    jsonTripsFile.getString("busPlate"),
-                    jsonTripsFile.getString("routeName"));
-            txtTagContent.setText(trip.getRouteName());
-        }catch (JSONException e){
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-        }
-    }
-
     private void initLoadButton() {
         loadAndShowJsonData();
         btnWrite.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    String response = jsonFileAction.write(sendTripJson(trip), "trips/newTrip.txt");
+                    Date dateForFile = new Date();
+                    String tripFileName = "/trips/" + dateForFile.getTime();
+                    System.out.println(tripFileName);
+                    String response = jsonFileAction.write(sendTripJson(trip), tripFileName);
                     txtTagContent.setText(response);
+                    startActivity(new Intent(ScanActivity.this,
+                            HomeActivity.class));
                 }
                 return true;
             }
@@ -120,21 +125,22 @@ public class ScanActivity extends AppCompatActivity {
     private JSONObject sendTripJson(Trip trip) {
         JSONObject tripJson = new JSONObject();;
         try{
+            tripJson.put("driverName", "none");
             tripJson.put("routeId", trip.getRouteId());
             tripJson.put("routeDirection", trip.getRouteDirection());
             tripJson.put("busPlate", trip.getBusPlate());
             tripJson.put("routeName", trip.getRouteName());
+            tripJson.put("date", new Date().toString());
             tripJson.put("passengers", trip.getPassengers());
         }catch(JSONException e){
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
-
         return tripJson;
     }
 
     private void loadAndShowJsonData() {
         try {
-            JSONArray jArray = new JSONArray(jsonFileAction.readJsonFile("cardsInformation.txt"));
+            JSONArray jArray = new JSONArray(jsonFileAction.readFromFile("cardsInformation.txt", getApplicationContext()));
             fillClientesListWithJsonArray(jArray);
         } catch (final JSONException e) {
             runOnUiThread(new Runnable() {
@@ -153,7 +159,7 @@ public class ScanActivity extends AppCompatActivity {
                 R.layout.list_item, new String[]{"id_tarjeta", "nombre"},
                 new int[]{R.id.id_tarjeta, R.id.nombre});
 
-        lv.setAdapter(adapter);
+        viajerosListView.setAdapter(adapter);
     }
 
     private void fillClientesListWithJsonArray(JSONArray jArray) throws JSONException {
@@ -192,16 +198,12 @@ public class ScanActivity extends AppCompatActivity {
         super.onNewIntent(intent);
 
         NfcA tag = NfcA.get((Tag)intent.getParcelableExtra(NfcAdapter.EXTRA_TAG));
-
         try {
             tag.connect();
-
             ByteBuffer bb = ByteBuffer.wrap(tag.getTag().getId());
             this.currentId = byteArrayToHexString(bb.array());
             searchByCardSerial();
             Toast.makeText(this, this.currentId, Toast.LENGTH_LONG).show();
-
-            btnCantPasajeros.setText(cantPasajerosText + (++cantidadDePasajeros));
         } catch (Exception ex) {
             Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
         }
@@ -225,17 +227,28 @@ public class ScanActivity extends AppCompatActivity {
     }
 
     private void searchByCardSerial() {
-        HashMap<String, String> client = searchForClient(this.currentId.trim());
-        ArrayList<HashMap<String, String>> lista = new ArrayList<>();
-        lista.add(client);
-        setListViewAdapter(lista);
+        //Search if client already exists
+        HashMap<String, String> client;
+        if( (client = searchForClient(this.currentId.trim(), listaViajeros)) != null)
+        {
+            Toast.makeText(this, "El viajero está siendo registrado de nuevo.", Toast.LENGTH_SHORT).show();
+        }else
+        {
+            client = searchForClient(this.currentId.trim(), clientes);
+        }
+
+        if(client != null){
+            listaViajeros.add(client);
+            setListViewAdapter(listaViajeros);
+        }
     }
 
     @Nullable
-    private HashMap<String, String> searchForClient(String tagContent) {
+    private HashMap<String, String> searchForClient(String tagContent, List<HashMap<String, String> > clientes) {
         final String keyToCompare = "id_tarjeta";
         for (HashMap<String, String> hMap : clientes) {
             String clientId = hMap.get(keyToCompare);
+
             if (clientId.trim().equals(tagContent)) {
                 clientFoundActions(tagContent);
                 return hMap;
@@ -253,7 +266,7 @@ public class ScanActivity extends AppCompatActivity {
         } catch(JSONException e){
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
-        //1trip.addPassenger(passenger);
+        trip.addPassenger(passenger);
     }
 
     private void playSound() {

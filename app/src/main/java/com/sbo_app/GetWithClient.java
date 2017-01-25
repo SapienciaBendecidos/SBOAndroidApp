@@ -13,7 +13,7 @@ public class GetWithClient {
     private String primerApellido;
     @SerializedName("id_tarjeta")
     @Expose
-    private Integer idTarjeta;
+    private String idTarjeta;
     @SerializedName("saldo")
     @Expose
     private Integer saldo;
@@ -37,11 +37,11 @@ public class GetWithClient {
         this.primerApellido = primerApellido;
     }
 
-    public Integer getIdTarjeta() {
+    public String getIdTarjeta() {
         return idTarjeta;
     }
 
-    public void setIdTarjeta(Integer idTarjeta) {
+    public void setIdTarjeta(String idTarjeta) {
         this.idTarjeta = idTarjeta;
     }
 
