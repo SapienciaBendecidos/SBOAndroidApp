@@ -116,6 +116,7 @@ public class ScanActivity extends AppCompatActivity {
                     txtTagContent.setText(response);
                     startActivity(new Intent(ScanActivity.this,
                             HomeActivity.class));
+                    finish();
                 }
                 return true;
             }
