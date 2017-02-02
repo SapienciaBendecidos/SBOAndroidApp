@@ -81,7 +81,7 @@ public class ScanActivity extends AppCompatActivity {
             Intent intent = getIntent();
             int idRuta = intent.getIntExtra("idRuta", 0);
             String nombre = intent.getStringExtra("nombre");
-            int dir = intent.getIntExtra("routeDirection", 0);
+            int dir = intent.getIntExtra("rutaDir", 0);
             String direccion = dir == 1 ? "Entrada" : "Salida";
             String plate = intent.getStringExtra("plate");
 
