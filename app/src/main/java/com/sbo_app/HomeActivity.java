@@ -41,7 +41,7 @@ import static com.squareup.okhttp.Protocol.get;
 
 public class HomeActivity extends AppCompatActivity {
     private JsonFileActions jsonFileAction;
-    private static String url = /*"http://dba6a8f6.ngrok.io/api";*/"http://fiasps.unitec.edu:8060/api";
+    private static String url = /*"http://dba6a8f6.ngrok.io/api";*/"http://45.55.145.116:3000/api";
     private RequestInterceptor requestInterceptor;
     private RestAdapter radapter;
     private EndPointsInterface restInt;
@@ -56,7 +56,7 @@ public class HomeActivity extends AppCompatActivity {
             public void intercept(RequestFacade request) {
                 request.addHeader("Accept", "application/json");
                 request.addHeader("Content-Type", "application/json");
-                request.addHeader("Authorization","XFFI74tRU3H0i12PbYKBBHQLKGGpe9MCuDBUVtHhijjITBwC7B3OLsWyCaFR30Qi");
+                request.addHeader("Authorization","PmBosIUDHTtRGwIxaRwppFswWKCjsqd9aQssLNBNP9o8Amn2phZomYnrYJHeeQDf");
             }
         };
 
